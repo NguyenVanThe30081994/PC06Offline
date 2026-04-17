@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header mb-4 animate__animated animate__fadeIn">
+    <div class="header-main-group">
+        <div class="header-title-pill shadow-sm glass-card">
+            <i class="fa-solid fa-address-book"></i>
+            <h1 class="mb-0">Danh bạ Đơn vị</h1>
+        </div>
+        
+        <div class="header-actions">
+            {% if perms.get('p_contact_lead') or perms.get('p_contact_exec') or perms.get('p_sys_exec') or perms.get('p_sys_lead') or is_admin or session.get('uid') %}
+            <button class="btn btn-primary rounded-pill px-4 fw-bold shadow" data-bs-toggle="modal" data-bs-target="#addContactModal">
+                <i class="fa-solid fa-plus me-2"></i>THÊM LIÊN HỆ
+            </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Unified Filter Hub -->
+<div class="filter-bar-unified animate__animated animate__fadeInUp mb-4 glass-card" style="background: rgba(255,255,255,0.2) !important;">
+    <div class="search-box-modern">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="contactSearch" placeholder="Tìm tên, số điện thoại hoặc đơn vị..." onkeyup="unifiedFilter()">
+    </div>
+    
+    <div class="filter-divider"></div>
+    
+    <div class="filter-pills-container" id="categoryFilters">
+        <div class="filter-pill active" data-cat="ALL" onclick="setCategoryFilter('ALL')">TẤT CẢ NHÓM</div>
+        {% for cat in categories %}
+        <div class="filter-pill" data-cat="{{ cat.name }}" onclick="setCategoryFilter('{{ cat.name }}')">{{ cat.name|upper }}</div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="main-content-area animate__animated animate__fadeInUp">
+    <div class="card glass-card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+        <div class="glass-header">
+            <i class="fa-solid fa-address-book me-2"></i>Danh sách liên hệ đơn vị
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="pill-thead">
+                    <tr>
+                        <th class="ps-4">Tên đơn vị / Cá nhân</th>
+                        <th>Chức vụ / Nhóm</th>
+                        <th>Số điện thoại</th>
+                        <th>Email</th>
+                        <th class="pe-4 text-end">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="contactTable">
+                    {% for c in contacts %}
+                    <tr class="contact-row" data-category="{{ c.category }}">
+                        <td class="ps-4 py-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-primary-gradient text-white rounded-circle shadow-sm fw-bold d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; font-size: 14px;">
+                                    {{ c.name[:1].upper() }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark">{{ c.name }}</div>
+                                    <div class="tiny text-muted d-lg-none">{{ c.position or 'Thành viên' }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="badge bg-light text-primary border rounded-pill px-2 tiny fw-bold">{{ c.category }}</div>
+                            <div class="small text-muted fw-medium mt-1 d-none d-lg-block">{{ c.position or 'Thành viên' }}</div>
+                        </td>
+                        <td class="fw-bold text-primary">{{ c.phone }}</td>
+                        <td class="small text-muted">{{ c.email or '-' }}</td>
+                        <td class="pe-4 text-end">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="tel:{{ c.phone }}" class="btn btn-light btn-circle btn-circle-sm border shadow-sm">
+                                    <i class="fa-solid fa-phone text-success tiny"></i>
+                                </a>
+                                {% if perms.get('p_contact_lead') or perms.get('p_contact_exec') or is_admin %}
+                                <a href="/contacts/delete/{{ c.id }}" class="btn btn-light btn-circle btn-circle-sm border shadow-sm text-danger" onclick="return confirm('Xóa liên hệ này?')">
+                                    <i class="fa-solid fa-trash tiny"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal stays same but cleaned up classes -->
+<div class="modal fade" id="addContactModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0">
+            <form method="POST">
+                <div class="modal-header primary">
+                    <h5 class="modal-title fw-bold">THÊM LIÊN HỆ MỚI</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-bold text-dark small">TÊN ĐƠN VỊ / CÁ NHÂN</label>
+                            <input type="text" name="name" class="form-control" placeholder="Nhập tên..." required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark small">CHỨC VỤ</label>
+                            <select name="position" class="form-select">
+                                <option value="" disabled selected>Chọn chức vụ...</option>
+                                {% for r in roles %}<option value="{{ r.name }}">{{ r.name }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark small">NHÓM</label>
+                            <select name="category" class="form-select" required>
+                                <option value="" disabled selected>Chọn nhóm danh bạ...</option>
+                                {% for c in categories %}<option value="{{ c.name }}">{{ c.name }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark small">LĨNH VỰC</label>
+                            <select name="linhvuc" class="form-select">
+                                <option value="" disabled selected>Chọn lĩnh vực...</option>
+                                {% for lv in linhvuc_items %}<option value="{{ lv.name }}">{{ lv.name }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold text-dark small">SỐ ĐIỆN THOẠI</label>
+                            <input type="tel" name="phone" class="form-control"
+                                   placeholder="0xxx.xxx.xxx"
+                                   pattern="0[0-9]{9}"
+                                   maxlength="10"
+                                   title="Số điện thoại gồm 10 số, bắt đầu bằng số 0"
+                                   required>
+                            <div class="form-text text-muted tiny">10 số, bắt đầu bằng số 0 (ví dụ: 0912345678)</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light px-4 rounded-pill fw-bold border" data-bs-dismiss="modal">HỦY</button>
+                    <button type="submit" class="btn btn-primary px-5 rounded-pill fw-bold shadow">THÊM VÀO DANH BẠ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentCat = 'ALL';
+
+    function setCategoryFilter(cat) {
+        currentCat = cat;
+        document.querySelectorAll('#categoryFilters .filter-pill').forEach(p => {
+            p.classList.toggle('active', p.getAttribute('data-cat') === cat);
+        });
+        unifiedFilter();
+    }
+
+    function unifiedFilter() {
+        const query = document.getElementById('contactSearch').value.toLowerCase();
+        const rows = document.querySelectorAll('.contact-row');
+        
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            const cat = row.getAttribute('data-category');
+            
+            const matchText = text.includes(query);
+            const matchCat = (currentCat === 'ALL' || cat === currentCat);
+            
+            if (matchText && matchCat) {
+                row.style.display = 'table-row';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+</script>
+{% endblock %}

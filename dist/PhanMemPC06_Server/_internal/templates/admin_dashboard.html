@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header mb-4 animate__animated animate__fadeIn">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 w-100">
+        <div class="header-main-group">
+            <div class="header-title-pill shadow-sm">
+                <i class="fa-solid fa-house-chimney"></i>
+                <h1 class="mb-0">Tổng quan hệ thống</h1>
+            </div>
+        </div>
+        
+        <div class="header-side-group">
+            <div class="header-status-pill">
+                <div id="dashboard-weather"><i class="fa-solid fa-cloud-sun"></i> Đang tải...</div>
+                <div class="border-start ps-3" id="dashboard-clock"><i class="fa-solid fa-clock"></i> --:--</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="main-content-area animate__animated animate__fadeInUp">
+    <!-- Bento Grid Row 1: Primary Metrics -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="bento-card p-4 h-100 position-relative">
+                <div class="position-absolute top-0 start-0 h-100 bg-primary" style="width: 6px; opacity: 0.9;"></div>
+                <h6 class="tiny fw-bold text-muted mb-3 text-uppercase letter-spacing-1">Tài khoản</h6>
+                <div class="d-flex align-items-end justify-content-between">
+                    <div class="display-5 fw-bold text-dark mb-0">{{ stats.users }}</div>
+                    <div class="bg-primary bg-opacity-10 p-3 rounded-4 text-primary shadow-sm"><i class="fa-solid fa-users fs-4"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="bento-card p-4 h-100 position-relative">
+                <div class="position-absolute top-0 start-0 h-100 bg-success" style="width: 6px; opacity: 0.9;"></div>
+                <h6 class="tiny fw-bold text-muted mb-3 text-uppercase letter-spacing-1">Báo cáo mới</h6>
+                <div class="d-flex align-items-end justify-content-between">
+                    <div class="display-5 fw-bold text-dark mb-0">{{ stats.reports }}</div>
+                    <div class="bg-success bg-opacity-10 p-3 rounded-4 text-success shadow-sm"><i class="fa-solid fa-file-circle-check fs-4"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="bento-card p-4 h-100 position-relative">
+                <div class="position-absolute top-0 start-0 h-100 bg-warning" style="width: 6px; opacity: 0.9;"></div>
+                <h6 class="tiny fw-bold text-muted mb-3 text-uppercase letter-spacing-1">Công việc</h6>
+                <div class="d-flex align-items-end justify-content-between">
+                    <div class="display-5 fw-bold text-dark mb-0">{{ stats.tasks|default(0) }}</div>
+                    <div class="bg-warning bg-opacity-10 p-3 rounded-4 text-warning shadow-sm"><i class="fa-solid fa-list-check fs-4"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="bento-card p-4 h-100 position-relative">
+                <div class="position-absolute top-0 start-0 h-100 bg-indigo" style="width: 6px; opacity: 0.9; background-color: #6366f1;"></div>
+                <h6 class="tiny fw-bold text-muted mb-3 text-uppercase letter-spacing-1">Hệ thống</h6>
+                <div class="d-flex align-items-end justify-content-between">
+                    <div class="display-5 fw-bold text-dark mb-0">{{ stats.roles }}</div>
+                    <div class="bg-indigo bg-opacity-10 p-3 rounded-4 text-indigo shadow-sm" style="color: #6366f1;"><i class="fa-solid fa-shield-halved fs-4"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bento Grid Row 2: Deep Analysis & Logs -->
+    <div class="row g-4">
+        <!-- Main Analysis Card: Large Bento Box -->
+        <div class="col-xl-8">
+            <div class="bento-card p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                    <h6 class="fw-bold mb-0 text-primary d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-chart-column"></i> TIẾN ĐỘ BÁO CÁO (ĐƠN VỊ CHƯA NỘP)
+                    </h6>
+                    <span class="badge bg-danger rounded-pill shadow-sm">{{ overdue_stats|length }} Biểu mẫu</span>
+                </div>
+                
+                <div class="overflow-auto" style="max-height: 480px; padding: 10px 5px;">
+                    {% if total_templates == 0 %}
+                        <div class="text-center py-5 text-muted animate__animated animate__fadeIn">
+                            <div class="fw-bold fs-5">Chưa có biểu mẫu báo cáo nào được thiết lập</div>
+                        </div>
+                    {% elif overdue_stats %}
+                        <div class="row g-3">
+                            {% for s in overdue_stats %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="p-3 rounded-4 border border-danger-subtle bg-danger bg-opacity-10 h-100 transition-all hover-lift" style="border-style: dashed !important;">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div class="fw-bold text-dark text-uppercase line-clamp-2" style="font-size: 0.75rem;">{{ s.name }}</div>
+                                        <span class="badge bg-danger px-2 py-1">{{ s.count }}</span>
+                                    </div>
+                                    <div class="tiny text-danger fw-bold opacity-75">Quá hạn báo cáo</div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5 text-muted animate__animated animate__fadeIn">
+                            <div class="fw-bold text-success fs-5"><i class="fa-solid fa-circle-check me-2"></i>Tất cả đơn vị đã hoàn thành báo cáo</div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Latest Activities: Vertical Bento Box -->
+        <div class="col-xl-4">
+            <div class="bento-card h-100 d-flex flex-column">
+                <div class="bg-primary bg-opacity-5 py-3 px-4 d-flex justify-content-between align-items-center border-bottom">
+                    <h6 class="fw-bold text-primary mb-0 d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left"></i> HOẠT ĐỘNG
+                    </h6>
+                    <a href="/logs" class="btn btn-sm btn-light rounded-pill px-3 fw-bold tiny">TẤT CẢ</a>
+                </div>
+                <div class="flex-grow-1 overflow-auto" id="dashboardLogs" style="max-height: 480px;">
+                    <div class="list-group list-group-flush">
+                        {% for l in logs[:8] %}
+                        <div class="list-group-item border-0 px-4 py-3 d-flex align-items-center gap-3 transition-all hover-bg-light">
+                            <div class="flex-shrink-0 bg-light p-2 rounded-circle">
+                                <i class="fa-solid fa-user-clock text-muted"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold small" style="color: var(--text-main);">{{ l.fullname }} <span class="fw-normal text-muted">{{ l.action }}</span></div>
+                                <div class="tiny text-primary fw-bold mt-1">{{ l.created_at.strftime('%H:%M %d/%m') }}</div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="p-4 text-center text-muted tiny">Chưa có hoạt động mới</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<style>
+    .hover-bg-light:hover { background-color: #f8fafc; transition: all 0.2s; }
+    .tiny { font-size: 10px; }
+</style>
+{% endblock %}
