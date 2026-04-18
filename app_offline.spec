@@ -33,7 +33,6 @@ DATA_FILES = [
     ('reset_admin.py', '.'),
     ('reset_categories.py', '.'),
     ('seed_categories.py', '.'),
-    ('passenger_wsgi.py', '.'),
     ('version.txt', '.'),
 ]
 
@@ -157,7 +156,6 @@ a = Analysis(
     excludes=[
         'tkinter',
         'matplotlib',
-        'numpy._core',
         'scipy',
     ],
     win_no_prefer_redirects=False,
