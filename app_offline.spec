@@ -37,20 +37,28 @@ DATA_FILES = [
     ('version.txt', '.'),
 ]
 
-# Tạo danh sách datas cho PyInstaller
+# Tạo danh sách datas cho PyInstaller - CHỈ desktop templates
 datas = []
 
-# Thêm thư mục
+# Thêm thư mục routes, static, v2_logic_configs
 for src, dst in DATA_DIRS:
     src_path = os.path.join(ROOT_DIR, src)
     if os.path.exists(src_path):
         datas.append((src_path, dst))
 
-# Thêm file
+# Them file Python
 for src, dst in DATA_FILES:
     src_path = os.path.join(ROOT_DIR, src)
     if os.path.exists(src_path):
         datas.append((src_path, dst))
+
+# Them templates - CHI desktop (khong mobile)
+templates_src = os.path.join(ROOT_DIR, 'templates')
+if os.path.exists(templates_src):
+    for f in os.listdir(templates_src):
+        # Bo qua tat ca file _mobile.html
+        if not f.endswith('_mobile.html'):
+            datas.append((os.path.join(templates_src, f), 'templates'))
 
 # Hidden imports - các module cần thiết
 hiddenimports = [
@@ -157,7 +165,6 @@ a = Analysis(
     excludes=[
         'tkinter',
         'matplotlib',
-        'numpy._core',
         'scipy',
     ],
     win_no_prefer_redirects=False,
