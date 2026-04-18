@@ -62,6 +62,12 @@ REM Copy script chạy server
 copy /Y "RUN_SERVER.bat" "dist\offline_package\"
 echo [OK] Da copy script chay
 
+REM Xóa thư mục build output thừa
+if exist "dist\PhanMemPC06_Server" (
+    rmdir /S /Q "dist\PhanMemPC06_Server"
+    echo [OK] Da xoa thu muc build thua
+)
+
 REM Tạo README
 echo.
 echo [INFO] Tao huong dan su dung...
